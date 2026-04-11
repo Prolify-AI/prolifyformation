@@ -1,0 +1,12 @@
+# Netlify Configuration for Next.js
+# Important: Configure environment variables in Netlify Dashboard
+# Required variables:
+# - NEXT_PUBLIC_SUPABASE_URL
+# - NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+[build]
+command = "NODE_OPTIONS=--max-old-space-size=4096 npx next build"
+publish = ".next"
+
+[[plugins]]
+package = "@netlify/plugin-nextjs"
