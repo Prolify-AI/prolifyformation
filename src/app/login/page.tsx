@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -73,6 +74,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center py-24 px-4 bg-gradient-to-br from-[#FFC107]/10 via-white to-white dark:from-[#FFD54F]/5 dark:via-[#0a0a0a] dark:to-[#0a0a0a]">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-28 h-28 rounded-2xl bg-[#FFC107] border-2 border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] mb-6">
+            <span className="text-3xl font-black text-black tracking-tight">Prolify</span>
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold text-black dark:text-white mb-4 tracking-tight">
             Welcome Back
           </h1>
@@ -178,9 +182,9 @@ export default function LoginPage() {
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="text-[#FFC107] hover:underline">
+              <PrivacyPolicyModal className="text-[#FFC107] hover:underline">
                 Privacy Policy
-              </Link>
+              </PrivacyPolicyModal>
             </p>
           </div>
         </div>

@@ -9,6 +9,7 @@ import CartDrawer from "./services/CartDrawer";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface UserCompany {
   rainc_company_id: string;
@@ -35,7 +36,8 @@ function ServiceGrid({ services, cartIds, onToggleCart }: {
 }
 
 export default function ServicesSection() {
-  const { user } = useAuth();
+  const { user, company } = useAuth();
+  const { trackServiceSelected, trackCheckoutStarted } = useAnalytics();
   const [cart, setCart] = useState<Service[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<ServiceCategory | "all">("all");
@@ -125,6 +127,14 @@ export default function ServicesSection() {
   const cartIds = new Set(cart.map((s) => s.id));
 
   function toggleCart(service: Service) {
+    const alreadyInCart = cart.find((s) => s.id === service.id);
+    if (!alreadyInCart) {
+      trackServiceSelected({
+        service_type: service.raincServiceType ?? service.id,
+        llc_state: company?.address ?? "unknown",
+        price: service.price,
+      });
+    }
     setCart((prev) =>
       prev.find((s) => s.id === service.id)
         ? prev.filter((s) => s.id !== service.id)
@@ -144,6 +154,11 @@ export default function ServicesSection() {
     }
     setCheckoutLoading(true);
     setOrderResult(null);
+    trackCheckoutStarted({
+      cart_total: cart.reduce((sum, s) => sum + s.price, 0),
+      items_count: cart.length,
+      llc_state: company?.address ?? "unknown",
+    });
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

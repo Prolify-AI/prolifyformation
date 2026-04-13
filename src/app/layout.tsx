@@ -9,6 +9,7 @@ import Navigation from "@/components/sections/navigation";
 import Footer from "@/components/sections/footer";
 import { PHProvider } from "@/providers/PostHogProvider";
 import { PostHogPageView } from "@/components/PostHogPageView";
+import { PostHogIdentify } from "@/components/PostHogIdentify";
 import { Suspense } from "react";
 import { PoliteChatWidget } from "@/components/chat/PoliteChatWidget";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
             <Suspense fallback={null}>
               <PostHogPageView />
             </Suspense>
+            <PostHogIdentify />
             <Script
               id="orchids-browser-logs"
               src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/orchids-browser-logs.js"

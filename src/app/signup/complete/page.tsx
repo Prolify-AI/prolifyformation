@@ -5,12 +5,14 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { CircleCheck as CheckCircle, Loader as Loader2, Circle as XCircle, ArrowRight, Sparkles, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 type Status = "loading" | "creating" | "success" | "already_exists" | "error" | "expired" | "awaiting_payment";
 
 function CompleteRegistrationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { trackSignup, trackOrderCompleted } = useAnalytics();
   const [status, setStatus] = useState<Status>("loading");
   const [email, setEmail] = useState("");
   const [planId, setPlanId] = useState("");
@@ -89,6 +91,12 @@ function CompleteRegistrationContent() {
       }
 
       setStatus("success");
+      trackSignup({ email: checkData.email ?? "", plan: checkData.plan_id ?? "" });
+      trackOrderCompleted({
+        order_id: registrationId,
+        revenue: 0,
+        llc_state: checkData.plan_id ?? "unknown",
+      });
     } catch (err: any) {
       setStatus("error");
       setErrorMessage(err.message || "Something went wrong");

@@ -62,13 +62,13 @@ export default function Navigation() {
     <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
       <header className="max-w-5xl mx-auto rounded-xl bg-[#FFC107] dark:bg-[#FFD54F] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] border-2 border-black dark:border-white transition-all duration-300 tracking-tight relative">
         <div className="px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-6">
               <Link
                 href="/"
                 className="text-lg font-bold text-black dark:text-black hover:text-black/70 dark:hover:text-black/70 transition-colors"
                 aria-label="Postly Home">
-                <Image src="https://i.imgur.com/z6DcpqB.png" alt="Prolify" width={260} height={84} className="h-16 w-auto" />
+                <Image src="https://i.imgur.com/z6DcpqB.png" alt="Prolify" width={320} height={104} className="h-20 w-auto" />
               </Link>
             </div>
             <nav className="hidden md:flex items-center gap-6 absolute left-1/2 -translate-x-1/2">

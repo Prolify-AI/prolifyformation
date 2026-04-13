@@ -1,122 +1,153 @@
 "use client";
 
-import React from 'react';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from "react";
+import Link from "next/link";
+import { ArrowRight, Quote } from "lucide-react";
+
+const TESTIMONIALS = [
+  {
+    quote: "Prolify made launching my US business seamless. From formation to bank account, everything was handled professionally. I never had to set foot in the US.",
+    name: "Elena Martinez",
+    title: "Founder, MedTech Solutions",
+    country: "Brazil",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
+  },
+  {
+    quote: "The transparency was incredible. I always knew what step we were on and what came next. My LLC was formed in under 2 weeks — faster than I expected.",
+    name: "James Wilson",
+    title: "CEO, Digital Commerce Co",
+    country: "UK",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
+  },
+  {
+    quote: "As a first-time founder, I was nervous about US formation. Prolify walked me through every document and deadline. Zero surprises, zero stress.",
+    name: "Priya Sharma",
+    title: "Founder, CloudSync AI",
+    country: "India",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
+  },
+  {
+    quote: "Banking was the hardest part when I tried to do this myself. With Prolify's partner network, I had my account approved in 4 days. Game changer.",
+    name: "Ahmed Al-Rashid",
+    title: "Founder & CTO, Quantum Labs",
+    country: "UAE",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
+  },
+];
+
+const LOGOS = [
+  "Shopify", "Amazon", "Stripe", "QuickBooks", "Mercury", "Relay",
+];
 
 const WhyProlify = () => {
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const next = useCallback(() => {
+    setActive((prev) => (prev + 1) % TESTIMONIALS.length);
+  }, []);
+
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(next, 5000);
+    return () => clearInterval(id);
+  }, [paused, next]);
+
+  const t = TESTIMONIALS[active];
+
   return (
-    <section className="relative pt-4 pb-20 md:pb-[100px] px-4 bg-gradient-to-b from-white via-[#FFC107]/[0.02] to-white overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,193,7,0.08),transparent_50%)]"></div>
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000005_1px,transparent_1px),linear-gradient(to_bottom,#00000005_1px,transparent_1px)] bg-[size:80px_80px]"></div>
+    <section className="py-24 md:py-32 px-4 bg-[#FFFDF5] relative overflow-hidden">
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 70% 50% at 50% 50%, rgba(255,193,7,0.12) 0%, transparent 70%)" }}
+      />
 
-      <div className="relative mx-auto !w-[1007px] !h-full !max-w-[1007px]">
-        <div className="text-center mb-16 md:mb-20">
-          <h2 className="text-[42px] md:text-[64px] font-black tracking-tighter mb-6 text-black relative inline-block">
-            Why Prolify?
-            <div className="absolute -inset-4 bg-[#FFC107]/10 blur-2xl rounded-full -z-10 animate-pulse"></div>
+      <div className="max-w-5xl mx-auto relative z-10">
+
+        <div className="text-center mb-16 space-y-4">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFC107]/20 border border-[#FFC107]/50 text-xs font-bold uppercase tracking-widest text-black/70">
+            Trusted by Founders Worldwide
+          </span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-black">
+            5,000+ founders launched<br className="hidden sm:block" /> their US business with us.
           </h2>
+          <p className="text-lg text-black/55 max-w-xl mx-auto font-medium leading-relaxed">
+            From India to Brazil to the UAE — international founders trust Prolify to make their US business real.
+          </p>
+        </div>
 
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="h-1 w-20 bg-gradient-to-r from-transparent via-[#FFC107] to-[#FFC107] rounded-full" />
-            <div className="relative">
-              <div className="w-4 h-4 rounded-full bg-black border-4 border-[#FFC107] shadow-[0_0_20px_rgba(255,193,7,0.5)]" />
-              <div className="absolute inset-0 w-4 h-4 rounded-full bg-[#FFC107] animate-ping opacity-20" />
+        <div
+          className="relative"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          <div className="bg-white border border-[#FFC107]/30 rounded-3xl p-8 md:p-12 relative shadow-sm">
+            <Quote className="absolute top-8 left-8 w-8 h-8 text-[#FFC107]/50" />
+
+            <blockquote className="text-xl md:text-2xl font-bold text-black leading-relaxed mb-8 pt-6">
+              &ldquo;{t.quote}&rdquo;
+            </blockquote>
+
+            <div className="flex items-center gap-4">
+              <img
+                src={t.avatar}
+                alt={t.name}
+                className="w-12 h-12 rounded-full object-cover border-2 border-[#FFC107]/60"
+              />
+              <div>
+                <div className="font-bold text-black text-sm">{t.name}</div>
+                <div className="text-black/50 text-xs font-medium">{t.title} · {t.country}</div>
+              </div>
+              <div className="ml-auto flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 text-[#FFC107]" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
             </div>
-            <div className="h-1 w-20 bg-gradient-to-l from-transparent via-[#FFC107] to-[#FFC107] rounded-full" />
           </div>
 
-          <div className="max-w-[850px] mx-auto space-y-3">
-            <p className="text-xl md:text-[21px] text-black/80 leading-[1.6] font-semibold">
-              We don't just form your business, we become your <span className="text-black bg-[#FFC107] px-2 py-1 rounded">US operations partner</span>.
-            </p>
-            <p className="text-lg md:text-[19px] text-black/70 leading-[1.6] font-medium">
-              See how Prolify compares to doing it yourself or juggling multiple vendors.
-            </p>
+          <div className="flex items-center justify-center gap-2 mt-6">
+            {TESTIMONIALS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                className={`rounded-full transition-all duration-300 ${
+                  i === active
+                    ? "w-7 h-2.5 bg-[#FFC107]"
+                    : "w-2.5 h-2.5 bg-black/15 hover:bg-black/30"
+                }`}
+                aria-label={`Go to testimonial ${i + 1}`}
+              />
+            ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-
-          <div className="group relative bg-white rounded-2xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-500 hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-4px] hover:translate-y-[-4px] flex flex-col">
-            <div className="absolute top-4 right-4 z-20 bg-[#FFC107] text-black px-3 py-1.5 rounded-lg border-2 border-black font-black text-xs shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0">
-              RECOMMENDED
-            </div>
-
-            <div className="relative w-full h-[300px] overflow-hidden bg-gradient-to-br from-[#FFC107] to-[#FFB300]">
-              <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:250%_250%] animate-[shimmer_3s_infinite]"></div>
-              <img
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/71eed71d-1e0c-4248-b7b3-cafb65a01c60/generated_images/professional-photograph-of-a-confident-i-75da22a5-20251205235023.jpg"
-                alt="Do It With Prolify"
-                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent group-hover:from-black/60 transition-all duration-500"></div>
-            </div>
-
-            <div className="p-8 flex flex-col flex-grow bg-white relative">
-              <div className="absolute -top-6 left-6 w-12 h-12 bg-[#FFC107] border-4 border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <Sparkles className="w-6 h-6 text-black" />
-              </div>
-              <h3 className="text-[26px] md:text-[28px] font-black text-black mb-4 leading-tight mt-4">
-                Do It With Prolify
-              </h3>
-              <p className="text-[16px] md:text-[17px] text-black/70 mb-6 leading-relaxed flex-grow font-semibold">
-                Your all-in-one US operations partner. Formation, compliance, banking, taxes, and ongoing support—all seamlessly integrated in one platform.
-              </p>
-              <button className="inline-flex items-center gap-2 text-black font-black text-[15px] transition-all duration-300 hover:gap-4 group/btn mt-auto bg-[#FFC107] px-6 py-3 rounded-lg border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]">
-                Learn More
-                <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover/btn:translate-x-1" />
-              </button>
-            </div>
+        <div className="mt-16 pt-10 border-t border-black/8">
+          <p className="text-center text-xs font-bold uppercase tracking-widest text-black/35 mb-8">
+            Integrates with your existing tools
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+            {LOGOS.map((logo) => (
+              <span
+                key={logo}
+                className="text-sm font-bold text-black/30 hover:text-black/60 transition-colors cursor-default tracking-wide"
+              >
+                {logo}
+              </span>
+            ))}
           </div>
+        </div>
 
-          <div className="group relative bg-white rounded-2xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-500 hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-4px] hover:translate-y-[-4px] flex flex-col">
-            <div className="relative w-full h-[300px] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
-              <img
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/71eed71d-1e0c-4248-b7b3-cafb65a01c60/generated_images/professional-photograph-of-a-stressed-en-86cfd9b1-20251205235023.jpg"
-                alt="Do It Yourself"
-                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-            </div>
-
-            <div className="p-8 flex flex-col flex-grow bg-white relative">
-              <h3 className="text-[26px] md:text-[28px] font-black text-black mb-4 leading-tight">
-                Do It Yourself
-              </h3>
-              <p className="text-[16px] md:text-[17px] text-black/70 mb-6 leading-relaxed flex-grow font-semibold">
-                Navigate US business formation alone—spend months researching legal requirements, filing paperwork, finding banks, and staying compliant. One mistake can cost thousands.
-              </p>
-              <button className="inline-flex items-center gap-2 text-black font-black text-[15px] transition-all duration-300 hover:gap-4 group/btn mt-auto border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white">
-                Learn More
-                <ArrowRight className="h-5 w-5 transition-transform duration-300" />
-              </button>
-            </div>
-          </div>
-
-          <div className="group relative bg-white rounded-2xl overflow-hidden border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-500 hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-4px] hover:translate-y-[-4px] flex flex-col md:col-span-2 lg:col-span-1">
-            <div className="relative w-full h-[300px] overflow-hidden bg-gradient-to-br from-red-50 to-orange-50">
-              <img
-                src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/project-uploads/71eed71d-1e0c-4248-b7b3-cafb65a01c60/generated_images/professional-photograph-of-overwhelmed-b-8f4401e9-20251205235023.jpg"
-                alt="Juggle Multiple Vendors"
-                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-[-1deg]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-            </div>
-
-            <div className="p-8 flex flex-col flex-grow bg-white relative">
-              <h3 className="text-[26px] md:text-[28px] font-black text-black mb-4 leading-tight">
-                Juggle Multiple Vendors
-              </h3>
-              <p className="text-[16px] md:text-[17px] text-black/70 mb-6 leading-relaxed flex-grow font-semibold">
-                Hire separate providers for formation, accounting, legal, banking, and mail. Pay 2-3x more while coordinating between disconnected services with zero integration.
-              </p>
-              <button className="inline-flex items-center gap-2 text-black font-black text-[15px] transition-all duration-300 hover:gap-4 group/btn mt-auto border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white">
-                Learn More
-                <ArrowRight className="h-5 w-5 transition-transform duration-300" />
-              </button>
-            </div>
-          </div>
-
+        <div className="mt-14 text-center">
+          <Link
+            href="/signup"
+            className="group inline-flex items-center gap-2 px-8 py-4 bg-black text-white font-bold text-sm rounded-2xl hover:bg-[#FFC107] hover:text-black transition-all duration-200 hover:shadow-lg"
+          >
+            Join 5,000+ Founders
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
       </div>
     </section>

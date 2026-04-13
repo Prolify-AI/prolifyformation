@@ -1,261 +1,237 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Slider } from '@/components/ui/slider';
-import { ArrowRight, CircleCheck as CheckCircle2, Circle as HelpCircle } from 'lucide-react';
+import { useState } from "react";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 const questions = [
   {
     id: 1,
-    question: 'What type of business are you starting?',
-    options: ['E-commerce', 'SaaS', 'Services', 'Physical Product', 'Other']
+    question: "What type of business are you starting?",
+    options: ["E-commerce", "SaaS / Software", "Services / Consulting", "Physical Product", "Other"],
   },
   {
     id: 2,
-    question: 'Are you planning to raise venture capital?',
-    options: ['Yes, definitely', 'Maybe in the future', 'No', 'Not sure']
+    question: "Are you planning to raise venture capital?",
+    options: ["Yes, definitely", "Maybe in the future", "No", "Not sure"],
   },
   {
     id: 3,
-    question: 'How many owners/founders will your company have?',
-    options: ['Just me (1)', '2 founders', '3-5 founders', 'More than 5']
+    question: "How many founders will your company have?",
+    options: ["Just me (1)", "2 founders", "3–5 founders", "More than 5"],
   },
   {
     id: 4,
-    question: "What's your expected annual revenue in year one?",
-    options: ['Under $50k', '$50k - $250k', '$250k - $1M', 'Over $1M']
+    question: "Expected annual revenue in year one?",
+    options: ["Under $50k", "$50k – $250k", "$250k – $1M", "Over $1M"],
   },
   {
     id: 5,
-    question: 'Which is more important to you?',
-    options: ['Simple structure and tax benefits', 'Ability to raise investor funding', 'Maximum legal protection', 'Not sure']
-  }
+    question: "What matters most to you?",
+    options: ["Simple structure & tax benefits", "Ability to raise investor funding", "Maximum legal protection", "Not sure yet"],
+  },
 ];
 
+function getRecommendation(answers: Record<number, string>) {
+  const raiseVC = answers[1];
+  const revenue = answers[3];
+  if (raiseVC === "Yes, definitely" || revenue === "Over $1M") return "C-Corp";
+  return "LLC";
+}
+
 export default function BusinessTools() {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [showResult, setShowResult] = useState(false);
-  const [monthlyRevenue, setMonthlyRevenue] = useState(5000);
-  const [platformFee, setPlatformFee] = useState(10);
+  const [done, setDone] = useState(false);
+
+  const [revenue, setRevenue] = useState(10000);
+  const [feeRate, setFeeRate] = useState(10);
+
+  const monthlyFees = (revenue * feeRate) / 100;
+  const savings = monthlyFees * 0.65;
+  const annualSavings = savings * 12;
 
   const handleAnswer = (answer: string) => {
-    setAnswers({ ...answers, [currentQuestion]: answer });
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
+    const updated = { ...answers, [currentQ]: answer };
+    setAnswers(updated);
+    if (currentQ < questions.length - 1) {
+      setCurrentQ(currentQ + 1);
     } else {
-      setShowResult(true);
+      setDone(true);
     }
   };
 
-  const resetQuiz = () => {
-    setCurrentQuestion(0);
+  const reset = () => {
+    setCurrentQ(0);
     setAnswers({});
-    setShowResult(false);
+    setDone(false);
   };
 
-  const getRecommendation = () => {
-    const raiseVC = answers[1];
-    const founders = answers[2];
-    const revenue = answers[3];
-
-    if (raiseVC === 'Yes, definitely' || revenue === 'Over $1M') {
-      return 'C-Corp';
-    }
-    return 'LLC';
-  };
-
-  const monthlyPlatformFees = (monthlyRevenue * platformFee) / 100;
-  const potentialMonthlySavings = monthlyPlatformFees * 0.65;
-  const annualSavings = potentialMonthlySavings * 12;
+  const recommendation = getRecommendation(answers);
 
   return (
-    <section className="py-24 md:py-32 bg-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,193,7,0.05)_0%,transparent_50%)]"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,193,7,0.05)_0%,transparent_50%)]"></div>
+    <section className="py-24 md:py-32 px-4 bg-[#FAFAFA] relative overflow-hidden">
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,193,7,0.06) 0%, transparent 60%)" }}
+      />
 
-      <div className="container mx-auto px-6 relative z-10">
-        {/* Section Header */}
-        <div className="text-center mb-16 max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FFC107] border-2 border-black mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <HelpCircle className="w-4 h-4 text-black" />
-            <span className="text-sm font-bold text-black uppercase tracking-wide">Business Planning Tools</span>
-          </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-black mb-6 tracking-tight">
-            Make Informed Decisions
+      <div className="max-w-6xl mx-auto relative z-10">
+        <div className="text-center mb-14 space-y-4">
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFC107]/10 border border-[#FFC107]/30 text-xs font-bold uppercase tracking-widest text-black/60">
+            Free Business Tools
+          </span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-black">
+            Make Smarter Decisions<br className="hidden sm:block" /> Before You Launch.
           </h2>
-          <p className="text-lg md:text-xl text-gray-700 leading-relaxed">
-            Use our free tools to help you make the right choices for your business
+          <p className="text-lg text-black/55 max-w-xl mx-auto font-medium leading-relaxed">
+            Use our free planning tools to choose the right entity and understand your costs.
           </p>
         </div>
 
-        {/* Two Column Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* Left Card - LLC vs C-Corp Quiz */}
-          <Card className="border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
-            <CardHeader className="border-b-2 border-black bg-[#FFC107]">
-              <CardTitle className="text-2xl font-bold text-black">
-                Not Sure If You Need an LLC or C-Corp?
-              </CardTitle>
-              <CardDescription className="text-black/70 text-base font-medium">
-                Answer 5 quick questions and we'll recommend the right entity type for your business goals.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8">
-              {!showResult ? (
-                <div className="space-y-6">
-                  {/* Progress Bar */}
-                  <div className="flex items-center gap-2 mb-8">
-                    <span className="text-sm font-semibold text-black whitespace-nowrap">
-                      Question {currentQuestion + 1} of {questions.length}
-                    </span>
-                    <div className="flex-1 flex gap-1">
-                      {questions.map((_, idx) => (
+          <div className="bg-white rounded-3xl border border-black/8 shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-[#FFC107] px-8 py-6">
+              <h3 className="text-xl font-black text-black mb-1">LLC or C-Corp?</h3>
+              <p className="text-sm text-black/65 font-medium">
+                Answer 5 quick questions to find the right entity type for your goals.
+              </p>
+            </div>
+
+            <div className="p-8 flex-grow flex flex-col">
+              {!done ? (
+                <>
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="flex gap-1 flex-1">
+                      {questions.map((_, i) => (
                         <div
-                          key={idx}
-                          className={`h-2 flex-1 rounded-full transition-colors ${
-                            idx <= currentQuestion ? 'bg-[#FFC107]' : 'bg-gray-200'
+                          key={i}
+                          className={`h-1.5 flex-1 rounded-full transition-colors ${
+                            i <= currentQ ? "bg-[#FFC107]" : "bg-black/8"
                           }`}
                         />
                       ))}
                     </div>
+                    <span className="text-xs font-bold text-black/40 whitespace-nowrap">
+                      {currentQ + 1}/{questions.length}
+                    </span>
                   </div>
 
-                  {/* Question */}
-                  <div className="mb-6">
-                    <h3 className="text-xl font-bold text-black mb-6">
-                      {questions[currentQuestion].question}
-                    </h3>
-                    <div className="space-y-3">
-                      {questions[currentQuestion].options.map((option) => (
-                        <button
-                          key={option}
-                          onClick={() => handleAnswer(option)}
-                          className="w-full p-4 text-left rounded-xl border-2 border-gray-200 hover:border-[#FFC107] hover:bg-[#FFC107]/5 transition-all duration-200 font-medium text-gray-700 hover:text-black"
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
+                  <h4 className="text-base font-black text-black mb-4">
+                    {questions[currentQ].question}
+                  </h4>
+
+                  <div className="space-y-2 flex-grow">
+                    {questions[currentQ].options.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => handleAnswer(opt)}
+                        className="w-full text-left px-4 py-3.5 rounded-xl border-2 border-black/8 text-sm font-semibold text-black/70 hover:border-[#FFC107] hover:bg-[#FFC107]/5 hover:text-black transition-all duration-200"
+                      >
+                        {opt}
+                      </button>
+                    ))}
                   </div>
-                </div>
+                </>
               ) : (
-                <div className="space-y-6 text-center py-8">
-                  <div className="w-16 h-16 bg-[#FFC107] rounded-full flex items-center justify-center mx-auto border-2 border-black">
-                    <CheckCircle2 className="w-10 h-10 text-black" />
+                <div className="flex flex-col items-center text-center flex-grow justify-center gap-6 py-4">
+                  <div className="w-16 h-16 bg-[#FFC107] rounded-2xl flex items-center justify-center">
+                    <svg className="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-black mb-2">
-                      We Recommend: {getRecommendation()}
-                    </h3>
-                    <p className="text-gray-700 mb-6">
-                      Based on your answers, {getRecommendation() === 'LLC'
-                        ? 'an LLC offers the flexibility and tax benefits you need'
-                        : 'a C-Corp is better suited for raising venture capital and scaling'}
+                    <p className="text-xs font-bold uppercase tracking-widest text-black/40 mb-2">We Recommend</p>
+                    <h4 className="text-4xl font-black text-black mb-3">{recommendation}</h4>
+                    <p className="text-sm text-black/60 font-medium leading-relaxed max-w-xs mx-auto">
+                      {recommendation === "LLC"
+                        ? "An LLC offers the simplicity, tax flexibility, and liability protection that fits your goals."
+                        : "A C-Corp is better suited for raising venture capital and scaling with investors."}
                     </p>
                   </div>
-                  <Button
-                    onClick={resetQuiz}
-                    variant="outline"
-                    className="border-2 border-black hover:bg-black hover:text-white"
-                  >
-                    Start Over
-                  </Button>
+                  <div className="flex flex-col gap-2 w-full max-w-xs">
+                    <Link
+                      href="/signup"
+                      className="w-full py-3 rounded-xl bg-black text-white text-sm font-bold hover:bg-[#FFC107] hover:text-black transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      Form My {recommendation}
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={reset}
+                      className="text-xs font-semibold text-black/40 hover:text-black transition-colors"
+                    >
+                      Start Over
+                    </button>
+                  </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Right Card - Platform Fee Calculator */}
-          <Card className="border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white">
-            <CardHeader className="border-b-2 border-black bg-[#FFF9E0]">
-              <CardTitle className="text-2xl font-bold text-black">
-                How Much Are Platform Fees Costing You?
-              </CardTitle>
-              <CardDescription className="text-black/70 text-base font-medium">
-                See how much you could save by accepting payments directly through Stripe.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 space-y-8">
+          <div className="bg-white rounded-3xl border border-black/8 shadow-sm overflow-hidden flex flex-col">
+            <div className="bg-[#FFF9E0] px-8 py-6 border-b border-black/6">
+              <h3 className="text-xl font-black text-black mb-1">Platform Fee Calculator</h3>
+              <p className="text-sm text-black/65 font-medium">
+                See how much you could save by accepting payments directly via Stripe.
+              </p>
+            </div>
 
-              {/* Monthly Revenue Slider */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold text-black">
-                    Monthly Revenue through Platforms
-                  </Label>
-                  <span className="text-2xl font-bold text-black">
-                    ${monthlyRevenue.toLocaleString()}
-                  </span>
+            <div className="p-8 flex-grow flex flex-col gap-6">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-bold text-black">Monthly Revenue</label>
+                  <span className="text-xl font-black text-black">${revenue.toLocaleString()}</span>
                 </div>
-                <Slider
-                  value={[monthlyRevenue]}
-                  onValueChange={(value) => setMonthlyRevenue(value[0])}
+                <input
+                  type="range"
                   min={1000}
                   max={50000}
                   step={500}
-                  className="[&_[role=slider]]:bg-[#FFC107] [&_[role=slider]]:border-2 [&_[role=slider]]:border-black [&_.bg-primary]:bg-black"
+                  value={revenue}
+                  onChange={(e) => setRevenue(Number(e.target.value))}
+                  className="w-full h-2 rounded-full bg-black/8 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#FFC107] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:cursor-pointer"
                 />
-                <p className="text-sm text-gray-600">
-                  Revenue from Teachable, Gumroad, Substack, etc.
-                </p>
+                <p className="text-xs text-black/40 font-medium mt-1.5">Revenue from Teachable, Gumroad, Substack, etc.</p>
               </div>
 
-              {/* Platform Fee Slider */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold text-black">
-                    Current Platform Fee
-                  </Label>
-                  <span className="text-2xl font-bold text-black">
-                    {platformFee}%
-                  </span>
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-sm font-bold text-black">Platform Fee Rate</label>
+                  <span className="text-xl font-black text-black">{feeRate}%</span>
                 </div>
-                <Slider
-                  value={[platformFee]}
-                  onValueChange={(value) => setPlatformFee(value[0])}
+                <input
+                  type="range"
                   min={2}
                   max={30}
                   step={1}
-                  className="[&_[role=slider]]:bg-[#FFC107] [&_[role=slider]]:border-2 [&_[role=slider]]:border-black [&_.bg-primary]:bg-black"
+                  value={feeRate}
+                  onChange={(e) => setFeeRate(Number(e.target.value))}
+                  className="w-full h-2 rounded-full bg-black/8 appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#FFC107] [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-black [&::-webkit-slider-thumb]:cursor-pointer"
                 />
               </div>
 
-              {/* Results */}
-              <div className="pt-6 border-t-2 border-gray-200 space-y-4">
+              <div className="mt-auto pt-5 border-t border-black/6 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-700 font-medium">Monthly Platform Fees</span>
-                  <span className="text-xl font-bold text-red-600 line-through">
-                    ${monthlyPlatformFees.toFixed(0)}
-                  </span>
+                  <span className="text-sm font-semibold text-black/60">Monthly platform fees</span>
+                  <span className="text-sm font-bold text-red-500 line-through">${monthlyFees.toFixed(0)}</span>
                 </div>
-                <div className="bg-[#FFC107]/10 border-2 border-[#FFC107] rounded-xl p-6">
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-black mb-2">
-                      YOUR POTENTIAL MONTHLY SAVINGS
-                    </p>
-                    <p className="text-5xl font-bold text-black mb-1">
-                      ${potentialMonthlySavings.toFixed(0)}
-                    </p>
-                    <p className="text-sm text-gray-600 mb-4">
-                      ${annualSavings.toFixed(0)}/year saved
-                    </p>
-                  </div>
+                <div className="bg-[#FFC107]/10 border border-[#FFC107]/30 rounded-2xl p-5 text-center">
+                  <p className="text-xs font-bold uppercase tracking-widest text-black/50 mb-1">Your potential monthly savings</p>
+                  <p className="text-4xl font-black text-black">${savings.toFixed(0)}</p>
+                  <p className="text-xs text-black/50 font-medium mt-1">${annualSavings.toFixed(0)} saved per year</p>
                 </div>
+                <Link
+                  href="/taxes"
+                  className="w-full py-3.5 rounded-2xl bg-black text-white text-sm font-bold hover:bg-[#FFC107] hover:text-black transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  Start Saving Today
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
               </div>
-
-              <Button className="w-full bg-[#FFC107] hover:bg-[#FFD54F] text-black font-bold text-base py-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
-                Start Saving Today
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
-
+            </div>
+          </div>
         </div>
       </div>
     </section>

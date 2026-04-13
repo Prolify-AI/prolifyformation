@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
 import { ArrowRight, Mail, Lock, Phone, User, Sparkles, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -451,7 +452,7 @@ function SignupContent() {
                   I accept the{" "}
                   <Link href="/terms" className="text-[#FFC107] hover:underline font-semibold">Terms</Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-[#FFC107] hover:underline font-semibold">Privacy Policy</Link>{" "}
+                  <PrivacyPolicyModal className="text-[#FFC107] hover:underline font-semibold">Privacy Policy</PrivacyPolicyModal>{" "}
                   *
                 </Label>
               </div>
