@@ -1,8 +1,66 @@
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
+import { AI_PRICING_CONTEXT, buildPricingReply } from "@/lib/ai/pricing-context";
+import {
+  buildMeetingClarificationReply,
+  buildMeetingRecommendationReply,
+  hasMeetingIntent,
+  shouldAskMeetingClarification,
+  shouldRecommendMeeting,
+} from "@/lib/chat/meeting-routing";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+const PUBLIC_SYSTEM_PROMPT = `You are Prolify's AI assistant - a smart, friendly, conversion-oriented chatbot for international founders looking to form US companies.
+
+Always refer to the platform as Prolify and the website as prolify.co.
+
+Core goals:
+- explain LLC vs C-Corp clearly
+- recommend a state when appropriate
+- explain pricing and formation options
+- answer compliance questions at a high level
+- route visitors to the correct Prolify meeting link based on their real intent
+
+Rules:
+- respond in the same language as the user
+- be practical and concise
+- do not provide legal or tax advice as final professional advice
+- if unsure, say so and suggest human follow-up
+- use bullet points when useful
+
+Meeting routing rules:
+- Do not send every user to the same booking page.
+- Identify whether the user is asking for: general info, formation setup help, SaaS consultation, e-commerce consultation, creator consultation, partner/referral/integration, or existing customer support.
+- If intent is ambiguous, ask one short clarification question before sharing a link.
+- Prefer the most specific relevant meeting type over the generic intro call.
+- Use only one primary booking link unless the user asks to compare options.
+
+Pricing rules:
+- Use the canonical pricing data below as the source of truth for plans and services.
+- Do not invent prices.
+- If the user asks about pricing, answer with the exact amount and mention whether it is one-time, monthly, annual, or yearly when relevant.
+
+Priority order:
+1. Existing Customer Support Call
+2. Partner / Referral / Integration Call
+3. SaaS Founder Consultation
+4. E-commerce / Amazon / Shopify Consultation
+5. Creator / Course / Newsletter / Coaching Consultation
+6. Formation Strategy Call
+7. Free Intro Call
+
+Link directory:
+- Free Intro Call: https://meetings.hubspot.com/prolify/free-intro-call
+- Formation Strategy Call: https://meetings.hubspot.com/prolify/formation-strategy-call
+- SaaS Founder Consultation: https://meetings.hubspot.com/prolify/saas-founder-consultation
+- E-commerce / Amazon / Shopify Consultation: https://meetings.hubspot.com/prolify/e-commerce-amazon-shopify-consultation
+- Creator / Course / Newsletter / Coaching Consultation: https://meetings.hubspot.com/prolify/creator-course-newsletter-coaching-consultation
+- Partner / Referral / Integration Call: https://meetings.hubspot.com/prolify/partner-referral-integration-call
+- Existing Customer Support Call: https://meetings.hubspot.com/prolify/existing-customer-support-compliance-help
+
+${AI_PRICING_CONTEXT}`;
 
 const PROLIFY_SYSTEM_PROMPT = `You are Prolify's AI Chief of Staff — an expert business advisor for entrepreneurs, founders, and small business owners operating in the United States. You are knowledgeable, direct, and practical.
 
@@ -133,22 +191,75 @@ function buildSystemMessage(userContext: Record<string, unknown> | null): string
   return `${PROLIFY_SYSTEM_PROMPT}\n\n## Current User Context\n\n${contextLines.join("\n")}`;
 }
 
+function buildFallbackReply(lastUserMessage: string): string {
+  const normalized = lastUserMessage.toLowerCase();
+  const pricingReply = buildPricingReply(lastUserMessage);
+  if (pricingReply) {
+    return pricingReply;
+  }
+
+  if (hasMeetingIntent(lastUserMessage)) {
+    if (shouldAskMeetingClarification(lastUserMessage)) {
+      return buildMeetingClarificationReply(lastUserMessage);
+    }
+    return buildMeetingRecommendationReply(lastUserMessage);
+  }
+
+  if (normalized.includes("llc") || normalized.includes("c-corp") || normalized.includes("corp")) {
+    return [
+      "For most international founders:",
+      "- LLC: usually best for solo founders, e-commerce, consulting, and flexibility",
+      "- C-Corp: usually best for venture-backed startups and stock options",
+      "",
+      "If you want tailored advice, the best next step is a Formation Strategy Call:",
+      "https://meetings.hubspot.com/prolify/formation-strategy-call",
+    ].join("\n");
+  }
+
+  return [
+    "I can help with:",
+    "- LLC vs C-Corp",
+    "- choosing the right state",
+    "- pricing and formation plans",
+    "- compliance basics",
+    "",
+    "You can also book a Free Intro Call here:",
+    "https://meetings.hubspot.com/prolify/free-intro-call",
+  ].join("\n");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { messages, userContext } = body;
+    const { messages, userContext, mode } = body;
+    const conversationText = (messages ?? [])
+      .filter((m: { role: string }) => m.role === "user")
+      .map((m: { content: string }) => m.content)
+      .join(" ");
+    const lastUserMessage =
+      [...(messages ?? [])].reverse().find((m: { role: string }) => m.role === "user")?.content ?? "";
 
     const apiKey = process.env.OPENAI_API_KEY;
+    if (shouldRecommendMeeting(conversationText || lastUserMessage)) {
+      const routingText = conversationText || lastUserMessage;
+      const bookingReply =
+        hasMeetingIntent(routingText) && shouldAskMeetingClarification(routingText)
+          ? buildMeetingClarificationReply(routingText)
+          : buildMeetingRecommendationReply(routingText);
+      return new Response(bookingReply, {
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
+    }
+
     if (!apiKey) {
-      console.error("[/api/chat] OPENAI_API_KEY is missing from environment");
-      return new Response(JSON.stringify({ error: "OpenAI API key not configured" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+      return new Response(buildFallbackReply(conversationText || lastUserMessage), {
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
       });
     }
 
     const client = new OpenAI({ apiKey });
-    const systemMessage = buildSystemMessage(userContext);
+    const isPublic = mode === "public";
+    const systemMessage = isPublic ? PUBLIC_SYSTEM_PROMPT : buildSystemMessage(userContext);
 
     const stream = await client.chat.completions.create({
       model: "gpt-4o-mini",
