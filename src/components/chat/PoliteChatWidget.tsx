@@ -84,7 +84,7 @@ function getPageContext(pathname: string, isAuthenticated: boolean, firstName: s
 
   return {
     page: "home",
-    greeting: "Hi! I'm Prolify AI from prolify.co. I can help with US company formation, pricing, compliance, and next steps.",
+    greeting: "Hi! I'm Polite from prolify.co. I can help with US company formation, pricing, compliance, and next steps.",
     suggestions: [
       "What's the difference between an LLC and C-Corp?",
       "How much does it cost to form a company?",
@@ -270,7 +270,7 @@ export function PoliteChatWidget() {
           <div className="flex flex-shrink-0 items-center justify-between bg-gradient-to-r from-amber-400 to-yellow-500 px-4 py-3">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20"><Sparkles className="h-4 w-4 text-white" /></div>
-              <div><p className="text-sm font-bold text-white">Prolify AI</p><p className="text-[10px] text-white/80">{isAuthenticated ? "Your AI guide" : "Online • Replies instantly"}</p></div>
+              <div><p className="text-sm font-bold text-white">Polite</p><p className="text-[10px] text-white/80">{isAuthenticated ? "Your AI guide" : "Online • Replies instantly"}</p></div>
             </div>
             <button onClick={() => setIsOpen(false)} className="rounded-lg p-1.5 text-white transition-colors hover:bg-white/20"><Minimize2 className="h-4 w-4" /></button>
           </div>
