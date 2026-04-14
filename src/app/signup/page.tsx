@@ -162,6 +162,9 @@ function SignupContent() {
     }
 
     if (authData.user) {
+      const createdUserId = authData.user.id;
+      const createdUserEmail = formData.email.trim().toLowerCase();
+
       if (!authData.session) {
         // In some Supabase setups, signup succeeds but no session is returned immediately.
         // Try an immediate sign-in so onboarding can continue without inbox verification.
@@ -183,6 +186,20 @@ function SignupContent() {
           .from("profiles")
           .update({ newsletter_subscribed: true })
           .eq("id", authData.user.id);
+      }
+
+      // Trigger lifecycle welcome email after account creation.
+      try {
+        await fetch("/api/email/post-signup-welcome", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: createdUserEmail,
+            fullName: formData.fullName,
+          }),
+        });
+      } catch (emailError) {
+        console.warn("[signup] welcome email trigger failed", emailError);
       }
 
       setRegisteredName(formData.fullName);
