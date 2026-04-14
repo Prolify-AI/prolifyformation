@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { sendLifecycleEmailByEvent } from "@/lib/email/lifecycle/dispatch";
 
 export async function POST(req: Request) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -117,6 +118,29 @@ export async function POST(req: Request) {
       .from("pending_registrations")
       .update({ status: "account_created" })
       .eq("id", registration_id);
+
+    if (registration.plan_id) {
+      try {
+        const origin = new URL(req.url).origin;
+        await sendLifecycleEmailByEvent({
+          to: registration.email,
+          event: "formation_order_confirmed",
+          variables: {
+            first_name: String(registration.full_name || "").split(" ")[0] || "Founder",
+            company_name: registration.company_name || "your company",
+            entity_type: registration.entity_type || "entity",
+            formation_state: registration.formation_state || "the selected state",
+            plan_name: registration.plan_id,
+            order_amount: registration.total_amount ? `$${registration.total_amount}` : "Paid",
+            order_id: registration_id,
+            dashboard_url: `${origin}/dashboard`,
+            cta_url: `${origin}/dashboard`,
+          },
+        });
+      } catch (emailError) {
+        console.error("[registration/finalize] FRM-01 send failed:", emailError);
+      }
+    }
 
     const { data: signInData } = await supabaseAdmin.auth.admin.generateLink({
       type: "magiclink",

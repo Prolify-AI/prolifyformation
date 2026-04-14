@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { sendLifecycleEmailByEvent } from "@/lib/email/lifecycle/dispatch";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-10-29.clover",
@@ -142,6 +143,26 @@ export async function POST(req: Request) {
       .from("pending_formation_payments")
       .update({ status: "formation_started" })
       .eq("id", formation_payment_id);
+
+    try {
+      const { data: userData } = await supabaseAdmin.auth.admin.getUserById(record.user_id);
+      const userEmail = userData?.user?.email;
+
+      if (userEmail) {
+        const origin = new URL(req.url).origin;
+        await sendLifecycleEmailByEvent({
+          to: userEmail,
+          event: "formation_submitted",
+          variables: {
+            first_name:
+              String(userData.user.user_metadata?.full_name || "").split(" ")[0] || "Founder",
+            cta_url: `${origin}/dashboard`,
+          },
+        });
+      }
+    } catch (emailError) {
+      console.error("[formation/finalize] FRM-03 send failed:", emailError);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

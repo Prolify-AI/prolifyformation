@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLifecycleTemplate } from "@/lib/email/templates/lifecycle-catalog";
-import { buildRenderedTemplate } from "@/lib/email/templates/render";
-import { sendSmtpMail } from "@/lib/email/smtp";
+import { sendLifecycleEmailByEvent } from "@/lib/email/lifecycle/dispatch";
 
 function getFirstName(fullName: string | undefined, fallbackEmail: string): string {
   const trimmed = String(fullName || "").trim();
@@ -27,26 +25,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
-    const template = getLifecycleTemplate("ONB-01");
-    if (!template) {
-      return NextResponse.json({ error: "Template ONB-01 not found" }, { status: 500 });
-    }
-
     const baseUrl = request.nextUrl.origin;
-    const rendered = buildRenderedTemplate(template, {
+    const result = await sendLifecycleEmailByEvent({
+      to: requestedEmail,
+      event: "signup_welcome",
+      variables: {
       first_name: getFirstName(fullName, requestedEmail),
       profile_url: `${baseUrl}/dashboard`,
       cta_url: `${baseUrl}/dashboard`,
       company_name: "Prolify",
-    });
-
-    const result = await sendSmtpMail({
-      to: requestedEmail,
-      subject: rendered.subject,
-      text: rendered.text,
-      html: rendered.html,
-      from: rendered.from,
-      replyTo: rendered.replyTo,
+      },
     });
 
     return NextResponse.json({ success: true, templateId: "ONB-01", result });
