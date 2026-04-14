@@ -28,6 +28,7 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [emailVerificationPending, setEmailVerificationPending] = useState(false);
   const [showGetStarted, setShowGetStarted] = useState(false);
   const [registeredName, setRegisteredName] = useState("");
 
@@ -133,10 +134,12 @@ function SignupContent() {
   };
 
   const handleFreeSubmit = async () => {
+    const redirectTo = `${window.location.origin}/auth/callback`;
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: {
+        emailRedirectTo: redirectTo,
         data: {
           full_name: formData.fullName,
           phone: formData.phone,
@@ -159,6 +162,12 @@ function SignupContent() {
     }
 
     if (authData.user) {
+      // When email confirmation is enabled in Supabase, session is null until user verifies.
+      if (!authData.session) {
+        setEmailVerificationPending(true);
+        return;
+      }
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       if (formData.newsletterSubscribed) {
@@ -356,6 +365,17 @@ function SignupContent() {
               </Link>
             </p>
           </div>
+
+          {emailVerificationPending && (
+            <div className="mb-6 p-4 rounded-2xl border-2 border-[#FFC107]/40 bg-[#FFC107]/10">
+              <p className="text-sm font-semibold text-black dark:text-white">
+                Check your inbox to verify your email before signing in.
+              </p>
+              <p className="text-xs text-black/70 dark:text-white/70 mt-1">
+                We sent a verification link to <strong>{formData.email}</strong>. Please also check spam/junk.
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
