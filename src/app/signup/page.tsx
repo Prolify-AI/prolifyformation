@@ -162,10 +162,18 @@ function SignupContent() {
     }
 
     if (authData.user) {
-      // When email confirmation is enabled in Supabase, session is null until user verifies.
       if (!authData.session) {
-        setEmailVerificationPending(true);
-        return;
+        // In some Supabase setups, signup succeeds but no session is returned immediately.
+        // Try an immediate sign-in so onboarding can continue without inbox verification.
+        const { data: signInData } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (!signInData.session) {
+          setEmailVerificationPending(true);
+          return;
+        }
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -369,10 +377,10 @@ function SignupContent() {
           {emailVerificationPending && (
             <div className="mb-6 p-4 rounded-2xl border-2 border-[#FFC107]/40 bg-[#FFC107]/10">
               <p className="text-sm font-semibold text-black dark:text-white">
-                Check your inbox to verify your email before signing in.
+                Account created, but automatic login is still pending.
               </p>
               <p className="text-xs text-black/70 dark:text-white/70 mt-1">
-                We sent a verification link to <strong>{formData.email}</strong>. Please also check spam/junk.
+                Try signing in directly now. If needed, check your inbox at <strong>{formData.email}</strong>.
               </p>
             </div>
           )}
