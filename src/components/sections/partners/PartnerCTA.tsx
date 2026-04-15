@@ -30,7 +30,7 @@ export default function PartnerCTA() {
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Link>
           <a
-            href="mailto:partners@prolify.com"
+            href="mailto:partners@prolify.co"
             className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-bold text-base rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
           >
             <Mail className="w-5 h-5" />
@@ -40,8 +40,8 @@ export default function PartnerCTA() {
 
         <p className="text-sm text-gray-400">
           Questions? Email{" "}
-          <a href="mailto:partners@prolify.com" className="text-gray-600 font-semibold hover:text-[#b08800] transition-colors underline underline-offset-2">
-            partners@prolify.com
+          <a href="mailto:partners@prolify.co" className="text-gray-600 font-semibold hover:text-[#b08800] transition-colors underline underline-offset-2">
+            partners@prolify.co
           </a>
         </p>
       </div>

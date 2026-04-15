@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowRight } from "lucide-react";
+import { TermsModal } from "@/components/TermsModal";
 
 const HIDDEN_PATHS = ["/signup", "/login"];
 
@@ -128,7 +129,7 @@ const Footer = () => {
             </p>
             <div className="flex gap-5 text-xs text-black/35">
               <a href="/privacy-policy" className="hover:text-black/60 cursor-pointer transition-colors font-medium">Privacy Policy</a>
-              <span className="hover:text-black/60 cursor-pointer transition-colors font-medium">Terms of Service</span>
+              <TermsModal className="hover:text-black/60 cursor-pointer transition-colors font-medium">Terms of Service</TermsModal>
               <a href="/cookie-policy" className="hover:text-black/60 cursor-pointer transition-colors font-medium">Cookie Policy</a>
             </div>
           </div>
