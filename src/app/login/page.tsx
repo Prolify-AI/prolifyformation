@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
+import { TermsModal } from "@/components/TermsModal";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -178,9 +179,9 @@ export default function LoginPage() {
           <div className="mt-8 pt-6 border-t-2 border-gray-200 dark:border-gray-700">
             <p className="text-xs text-center text-gray-500 dark:text-gray-400">
               By signing in, you agree to our{" "}
-              <Link href="/terms" className="text-[#FFC107] hover:underline">
+              <TermsModal className="text-[#FFC107] hover:underline">
                 Terms of Service
-              </Link>{" "}
+              </TermsModal>{" "}
               and{" "}
               <PrivacyPolicyModal className="text-[#FFC107] hover:underline">
                 Privacy Policy

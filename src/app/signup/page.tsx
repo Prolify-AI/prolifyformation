@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { PrivacyPolicyModal } from "@/components/PrivacyPolicyModal";
+import { TermsModal } from "@/components/TermsModal";
 import { ArrowRight, Mail, Lock, Phone, User, Sparkles, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -495,7 +496,7 @@ function SignupContent() {
                 />
                 <Label htmlFor="termsAccepted" className="text-sm text-black/80 dark:text-white/80 cursor-pointer">
                   I accept the{" "}
-                  <Link href="/terms" className="text-[#FFC107] hover:underline font-semibold">Terms</Link>{" "}
+                  <TermsModal className="text-[#FFC107] hover:underline font-semibold">Terms</TermsModal>{" "}
                   and{" "}
                   <PrivacyPolicyModal className="text-[#FFC107] hover:underline font-semibold">Privacy Policy</PrivacyPolicyModal>{" "}
                   *

@@ -13,7 +13,6 @@ const WhyProlify = dynamicImport(() => import("@/components/sections/why-prolify
 const ProlifyPricing = dynamicImport(() => import("@/components/sections/prolify-pricing"));
 const Features = dynamicImport(() => import("@/components/sections/features"));
 const Integrations = dynamicImport(() => import("@/components/sections/integrations"));
-const Pricing = dynamicImport(() => import("@/components/sections/pricing"));
 const BusinessTools = dynamicImport(() => import("@/components/sections/business-tools"));
 const FAQ = dynamicImport(() => import("@/components/sections/faq"));
 
@@ -50,7 +49,6 @@ export default function Home() {
           <WhyProlify />
           <ProlifyPricing />
           <Features />
-          <Pricing />
           <BusinessTools />
           <FAQ />
         </main>
