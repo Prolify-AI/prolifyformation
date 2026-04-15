@@ -318,6 +318,38 @@ function DashboardContent() {
       return;
     }
 
+    const payment = searchParams.get("payment");
+    if (payment === "success") {
+      setParamsConsumed(true);
+      setActiveSection("services");
+      router.replace("/dashboard", { scroll: false });
+
+      import("sonner").then(({ toast }) => {
+        toast.success("Payment successful! Your services have been ordered.");
+      });
+
+      // Trigger KYC identity verification email after service purchase
+      (async () => {
+        try {
+          const { supabase } = await import("@/lib/supabase/client");
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) return;
+
+          await fetch("/api/kyc/trigger-verification", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ serviceName: "your recent service" }),
+          });
+        } catch (e) {
+          console.warn("[dashboard] KYC email trigger failed:", e);
+        }
+      })();
+      return;
+    }
+
     const section = searchParams.get("section") as ActiveSection | null;
     const checkout = searchParams.get("checkout");
     if (section) {
