@@ -83,6 +83,7 @@ const AnnualReportModal = dynamicImport(() => import("@/components/dashboard/Ann
 const AddExistingCompanyModal = dynamicImport(() => import("@/components/dashboard/AddExistingCompanyModal"));
 const MailPhoneSection = dynamicImport(() => import("@/components/dashboard/MailPhoneSection"));
 const ServicesSection = dynamicImport(() => import("@/components/dashboard/ServicesSection"));
+const KYCVerificationSection = dynamicImport(() => import("@/components/dashboard/KYCVerificationSection"));
 
 type OnboardingData = {
   company_name: string;
@@ -921,6 +922,7 @@ function DashboardContent() {
               {activeSection === "settings" && <SettingsSection />}
               {activeSection === "mail-phone" && <MailPhoneSection />}
               {activeSection === "services" && <ServicesSection />}
+              {activeSection === "kyc" && <KYCVerificationSection />}
             </>
           )}
         </div>
