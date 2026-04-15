@@ -64,6 +64,14 @@ async function handleEvent(event: Stripe.Event) {
     return;
   }
 
+  if (event.type === 'invoice.payment_failed') {
+    try {
+      await handlePaymentFailedEvent(event, stripeData as Stripe.Invoice);
+    } catch (error) {
+      console.error('Failed to process payment_failed lifecycle email:', error);
+    }
+  }
+
   // for one time payments, we only listen for the checkout.session.completed event
   if (event.type === 'payment_intent.succeeded' && event.data.object.invoice === null) {
     return;
@@ -121,6 +129,62 @@ async function handleEvent(event: Stripe.Event) {
         console.error('Error processing one-time payment:', error);
       }
     }
+  }
+}
+
+async function handlePaymentFailedEvent(event: Stripe.Event, invoice: Stripe.Invoice) {
+  const customerId = typeof invoice.customer === 'string' ? invoice.customer : null;
+  if (!customerId) return;
+
+  const customer = await stripe.customers.retrieve(customerId);
+  const customerEmail =
+    typeof customer === 'string' ? null : customer.email ? String(customer.email).toLowerCase() : null;
+
+  if (!customerEmail) {
+    return;
+  }
+
+  const appBaseUrl = Deno.env.get('APP_BASE_URL');
+  const internalKey = Deno.env.get('INTERNAL_API_KEY');
+  if (!appBaseUrl || !internalKey) {
+    console.warn('APP_BASE_URL or INTERNAL_API_KEY is missing; skipping lifecycle trigger');
+    return;
+  }
+
+  const amountDue = invoice.amount_due ? `$${(invoice.amount_due / 100).toFixed(2)}` : '$0.00';
+  const planName =
+    invoice.lines?.data?.[0]?.description ||
+    invoice.lines?.data?.[0]?.price?.nickname ||
+    'your subscription';
+
+  const response = await fetch(`${appBaseUrl.replace(/\/$/, '')}/api/email/lifecycle/trigger`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-internal-api-key': internalKey,
+    },
+    body: JSON.stringify({
+      to: customerEmail,
+      event: 'payment_failed',
+      idempotencyKey: `stripe:${event.id}:BIL-02`,
+      metadata: {
+        source: 'supabase/functions/stripe-webhook',
+        stripe_event_id: event.id,
+        stripe_invoice_id: invoice.id,
+      },
+      variables: {
+        first_name: customerEmail.split('@')[0] || 'Founder',
+        payment_amount: amountDue,
+        plan_name: planName,
+        billing_url: `${appBaseUrl.replace(/\/$/, '')}/dashboard?section=billing`,
+        cta_url: `${appBaseUrl.replace(/\/$/, '')}/dashboard?section=billing`,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Lifecycle trigger failed (${response.status}): ${text}`);
   }
 }
 

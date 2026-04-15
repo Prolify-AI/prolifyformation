@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { to, event, variables } = body ?? {};
+    const { to, event, variables, idempotencyKey, metadata } = body ?? {};
 
     if (!to || !event) {
       return NextResponse.json({ error: "Missing required fields: to and event" }, { status: 400 });
@@ -48,6 +48,8 @@ export async function POST(request: NextRequest) {
     const result = await sendLifecycleEmailByEvent({
       to: String(to),
       event: event as LifecycleEventKey,
+      idempotencyKey: idempotencyKey ? String(idempotencyKey) : undefined,
+      metadata: metadata ?? {},
       variables: variables ?? {},
     });
 
