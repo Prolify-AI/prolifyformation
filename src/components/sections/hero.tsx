@@ -3,25 +3,27 @@
 import Link from "next/link";
 import { ArrowRight, Building2, Globe, Shield, Zap, TrendingUp, Users } from "lucide-react";
 import { useEffect, useRef } from "react";
-
-const STATS = [
-  { value: "5,000+", label: "Founders Served" },
-  { value: "50", label: "US States" },
-  { value: "1 Week", label: "Avg. Formation" },
-  { value: "100%", label: "Remote Process" },
-];
-
-const SERVICES = [
-  { icon: Building2, label: "LLC Formation" },
-  { icon: Shield, label: "Compliance" },
-  { icon: TrendingUp, label: "Bookkeeping" },
-  { icon: Zap, label: "Banking" },
-  { icon: Users, label: "Taxes" },
-  { icon: Globe, label: "Virtual Office" },
-];
+import { useI18n } from "@/contexts/I18nContext";
 
 const HeroSection = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { t } = useI18n();
+
+  const STATS = [
+    { value: t.hero.stat1Value, label: t.hero.stat1Label },
+    { value: t.hero.stat2Value, label: t.hero.stat2Label },
+    { value: t.hero.stat3Value, label: t.hero.stat3Label },
+    { value: t.hero.stat4Value, label: t.hero.stat4Label },
+  ];
+
+  const SERVICES = [
+    { icon: Building2, label: t.hero.serviceLLC },
+    { icon: Shield, label: t.hero.serviceCompliance },
+    { icon: TrendingUp, label: t.hero.serviceBookkeeping },
+    { icon: Zap, label: t.hero.serviceBanking },
+    { icon: Users, label: t.hero.serviceTaxes },
+    { icon: Globe, label: t.hero.serviceVirtualOffice },
+  ];
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -126,7 +128,7 @@ const HeroSection = () => {
         <div className="mb-7 animate-[slideDown_0.5s_ease-out_both]">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFC107]/10 border border-[#FFC107]/40 text-xs font-bold uppercase tracking-widest text-black/70">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FFC107] animate-pulse" />
-            Launch and run your US business, from anywhere
+            {t.hero.badge}
           </span>
         </div>
 
@@ -134,11 +136,11 @@ const HeroSection = () => {
           className="text-5xl sm:text-7xl md:text-[88px] font-black tracking-tighter text-black leading-[1.0] animate-[fadeInUp_0.7s_ease-out_0.15s_both]"
           style={{ letterSpacing: "-0.04em" }}
         >
-          Your US Business,
+          {t.hero.titleLine1}
           <span className="block mt-2">
-            Built From{" "}
+            {t.hero.titleLine2}{" "}
             <span className="relative inline-block">
-              <span className="relative z-10">Anywhere.</span>
+              <span className="relative z-10">{t.hero.titleHighlight}</span>
               <span
                 className="absolute bottom-1 left-0 w-full h-5 -z-0 opacity-50 rounded-sm"
                 style={{ background: "#FFC107" }}
@@ -148,10 +150,7 @@ const HeroSection = () => {
         </h1>
 
         <p className="mt-8 text-lg sm:text-xl text-black/55 max-w-2xl leading-relaxed font-medium animate-[fadeInUp_0.7s_ease-out_0.3s_both] tracking-tight">
-          Prolify is the{" "}
-          <span className="font-bold text-black">all-in-one platform</span> for
-          international founders — LLC formation, banking, bookkeeping, taxes,
-          compliance, and analytics in one place.
+          {t.hero.subtitle}
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 animate-[fadeInUp_0.7s_ease-out_0.45s_both]">
@@ -161,7 +160,7 @@ const HeroSection = () => {
           >
             <span className="absolute inset-0 bg-[#FFC107] translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
             <span className="relative z-10 transition-colors duration-300 group-hover:text-black">
-              Start Your LLC Today
+              {t.hero.ctaPrimary}
             </span>
             <ArrowRight className="relative z-10 h-4 w-4 transition-all duration-300 group-hover:translate-x-1 group-hover:text-black" />
           </Link>
@@ -170,7 +169,7 @@ const HeroSection = () => {
             onClick={scrollToPricing}
             className="inline-flex items-center justify-center h-14 px-10 rounded-2xl border-2 border-black/10 bg-white/80 text-base font-bold text-black/70 tracking-tight transition-all duration-300 hover:border-black hover:text-black hover:bg-white hover:shadow-sm active:scale-[0.98]"
           >
-            View Pricing
+            {t.hero.ctaSecondary}
           </button>
         </div>
 

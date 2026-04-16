@@ -4,6 +4,7 @@ import * as React from "react";
 import { Building2, User, FileText, Calendar, Percent, BookOpen, ChartBar as BarChart3, Rocket, Gift, Settings, Hop as Home, Bot, Store, GraduationCap, Crown, List, ChartPie as PieChart, Layers, ShoppingBag, Package, Sparkles, Megaphone, ChevronRight, LogOut, Mail, Phone, LayoutGrid, Lock, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useI18n } from "@/contexts/I18nContext";
 
 const FREE_PLAN_ID = "free";
 import {
@@ -76,6 +77,7 @@ export function DashboardSidebar({
   const { user, profile, company, signOut } = useAuth();
   const { state } = useSidebar();
   const { trackEvent } = useAnalytics();
+  const { t } = useI18n();
 
   const handleSectionChange = (section: ActiveSection) => {
     trackEvent("dashboard_section_viewed", { section });
@@ -99,41 +101,41 @@ export function DashboardSidebar({
   };
 
   const mainNavItems: NavItem[] = [
-    { id: "dashboard", label: "Dashboard", icon: Home },
-    { id: "co-founders", label: "Co-Founders", icon: User },
-    { id: "company", label: "Company", icon: Building2 },
-    { id: "documents", label: "Documents", icon: FileText },
-    { id: "compliance", label: "Compliance", icon: Calendar },
-    { id: "taxes", label: "Taxes", icon: Percent },
-    { id: "mail-phone", label: "Mail & Phone", icon: Mail },
-    { id: "services", label: "Services", icon: LayoutGrid },
-    { id: "kyc", label: "Identity Verification", icon: ShieldCheck },
+    { id: "dashboard", label: t.nav.dashboard, icon: Home },
+    { id: "co-founders", label: t.dashboard.coFounders, icon: User },
+    { id: "company", label: t.dashboard.company, icon: Building2 },
+    { id: "documents", label: t.dashboard.documents, icon: FileText },
+    { id: "compliance", label: t.dashboard.compliance, icon: Calendar },
+    { id: "taxes", label: t.dashboard.taxes, icon: Percent },
+    { id: "mail-phone", label: t.dashboard.mailPhone, icon: Mail },
+    { id: "services", label: t.dashboard.services, icon: LayoutGrid },
   ];
 
   const bookkeepingItems: NavItem[] = [
-    { id: "transactions", label: "Transactions", icon: List },
-    { id: "invoices", label: "Invoices", icon: FileText },
-    { id: "reports", label: "Reports", icon: PieChart },
-    { id: "chart-of-accounts", label: "Chart of Accounts", icon: Layers },
+    { id: "transactions", label: t.dashboard.transactions, icon: List },
+    { id: "invoices", label: t.dashboard.invoices, icon: FileText },
+    { id: "reports", label: t.dashboard.reports, icon: PieChart },
+    { id: "chart-of-accounts", label: t.dashboard.chartOfAccounts, icon: Layers },
   ];
 
   const analyticsItems: NavItem[] = [
-    { id: "orders", label: "Orders", icon: ShoppingBag },
-    { id: "inventory", label: "Inventory", icon: Package },
-    { id: "financials", label: "Financials", icon: Sparkles },
-    { id: "ads", label: "Ads", icon: Megaphone },
+    { id: "orders", label: t.dashboard.orders, icon: ShoppingBag },
+    { id: "inventory", label: t.dashboard.inventory, icon: Package },
+    { id: "financials", label: t.dashboard.financials, icon: Sparkles },
+    { id: "ads", label: t.dashboard.ads, icon: Megaphone },
   ];
 
   const growthNavItems: NavItem[] = [
-    { id: "ai-chief", label: "AI Chief of Staff", icon: Bot, badge: "AI" },
-    { id: "marketplace", label: "Marketplace", icon: Store },
-    { id: "learn", label: "Learn", icon: GraduationCap },
-    { id: "vip", label: "VIP Club", icon: Crown, badge: "VIP" },
+    { id: "ai-chief", label: t.dashboard.aiChiefOfStaff, icon: Bot, badge: "AI" },
+    { id: "marketplace", label: t.dashboard.marketplace, icon: Store },
+    { id: "learn", label: t.dashboard.learn, icon: GraduationCap },
+    { id: "vip", label: t.dashboard.vipClub, icon: Crown, badge: "VIP" },
   ];
 
   const bottomNavItems: NavItem[] = [
-    { id: "upgrade-plan", label: "Upgrade Plan", icon: Rocket, highlight: true },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "kyc", label: t.dashboard.identityVerification, icon: ShieldCheck },
+    { id: "upgrade-plan", label: t.dashboard.upgradePlan, icon: Rocket, highlight: true },
+    { id: "settings", label: t.dashboard.settings, icon: Settings },
   ];
 
   return (
@@ -149,7 +151,7 @@ export function DashboardSidebar({
                 Prolify
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                Business Platform
+                {t.dashboard.businessPlatform}
               </span>
             </div>
           )}
@@ -159,7 +161,7 @@ export function DashboardSidebar({
       <SidebarContent className="px-2 py-4">
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-            Main
+            {t.dashboard.main}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -186,7 +188,7 @@ export function DashboardSidebar({
 
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-            Finance
+            {t.dashboard.finance}
             {!isPaidPlan && <Lock className="h-3 w-3 text-amber-500" />}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -195,11 +197,11 @@ export function DashboardSidebar({
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton
-                      tooltip="Bookkeeping"
+                      tooltip={t.dashboard.bookkeeping}
                       className={isPaidPlan ? "hover:bg-gray-100 dark:hover:bg-gray-800" : "opacity-60 hover:bg-gray-100 dark:hover:bg-gray-800"}
                     >
                       <BookOpen className="h-5 w-5" />
-                      <span>Bookkeeping</span>
+                      <span>{t.dashboard.bookkeeping}</span>
                       <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -231,11 +233,11 @@ export function DashboardSidebar({
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton
-                      tooltip="Analytics"
+                      tooltip={t.dashboard.analytics}
                       className={isPaidPlan ? "hover:bg-gray-100 dark:hover:bg-gray-800" : "opacity-60 hover:bg-gray-100 dark:hover:bg-gray-800"}
                     >
                       <BarChart3 className="h-5 w-5" />
-                      <span>Analytics</span>
+                      <span>{t.dashboard.analytics}</span>
                       <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
@@ -268,7 +270,7 @@ export function DashboardSidebar({
 
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-            Growth
+            {t.dashboard.growth}
             {!isPaidPlan && <Lock className="h-3 w-3 text-amber-500" />}
           </SidebarGroupLabel>
           <SidebarGroupContent>
