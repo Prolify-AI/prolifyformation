@@ -34,6 +34,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { useI18n } from "@/contexts/I18nContext";
 import { supabase } from "@/lib/supabase/client";
 import {
   SidebarProvider,
@@ -42,6 +43,7 @@ import {
 } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Separator } from "@/components/ui/separator";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   Dialog,
   DialogContent,
@@ -138,7 +140,8 @@ type ActiveSection =
   | "upgrade-plan"
   | "settings"
   | "mail-phone"
-  | "services";
+  | "services"
+  | "kyc";
 
 const RESTRICTED_SECTIONS: ActiveSection[] = [
   "transactions",
@@ -187,6 +190,7 @@ function ProfileCompletionBanner({
   onboardingData: OnboardingData | null;
   onResume: () => void;
 }) {
+  const { t } = useI18n();
   const completedSteps = getCompletedOnboardingSteps(onboardingData);
   const currentStep = onboardingData?.current_step || 1;
   const totalSteps = ONBOARDING_STEPS.length;
@@ -201,10 +205,10 @@ function ProfileCompletionBanner({
           </div>
           <div className="min-w-0">
             <p className="text-sm font-bold text-black dark:text-white">
-              Complete your company formation
+              {t.dashboard.completeFormation}
             </p>
             <p className="text-xs text-black/50 dark:text-white/50">
-              {completedSteps.size}/{totalSteps} steps · {progressPercent}% done
+              {completedSteps.size}/{totalSteps} {t.dashboard.stepsProgress} · {progressPercent}% {t.dashboard.done}
             </p>
           </div>
         </div>
@@ -219,7 +223,7 @@ function ProfileCompletionBanner({
             onClick={onResume}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FFC107] hover:bg-[#FFB300] text-black font-bold text-xs rounded-lg transition-colors whitespace-nowrap"
           >
-            Continue <ChevronRight className="h-3 w-3" />
+            {t.dashboard.continueBtn} <ChevronRight className="h-3 w-3" />
           </button>
         </div>
       </div>
@@ -259,6 +263,7 @@ function ProfileCompletionBanner({
 
 function DashboardContent() {
   const { user, profile, company, refreshUserData } = useAuth();
+  const { t } = useI18n();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [paramsConsumed, setParamsConsumed] = useState(false);
@@ -322,29 +327,21 @@ function DashboardContent() {
     if (payment === "success") {
       setParamsConsumed(true);
       setActiveSection("services");
-      router.replace("/dashboard", { scroll: false });
-
       import("sonner").then(({ toast }) => {
         toast.success("Payment successful! Your services have been ordered.");
       });
-
-      // Trigger KYC identity verification email after service purchase
+      router.replace("/dashboard", { scroll: false });
       (async () => {
         try {
-          const { supabase } = await import("@/lib/supabase/client");
           const { data: { session } } = await supabase.auth.getSession();
-          if (!session?.access_token) return;
-
-          await fetch("/api/kyc/trigger-verification", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-            },
-            body: JSON.stringify({ serviceName: "your recent service" }),
-          });
-        } catch (e) {
-          console.warn("[dashboard] KYC email trigger failed:", e);
+          if (session?.access_token) {
+            await fetch("/api/kyc/trigger-verification", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+          }
+        } catch (err) {
+          console.warn("[kyc trigger] non-blocking error:", err);
         }
       })();
       return;
@@ -472,10 +469,10 @@ function DashboardContent() {
         <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
       </div>
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 text-center">
-        Upgrade to Unlock
+        {t.dashboard.upgradeToUnlock}
       </h2>
       <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm mb-8 text-sm">
-        This feature is available on paid plans. Upgrade to access advanced business tools.
+        {t.dashboard.upgradeDescription}
       </p>
       <div className="flex gap-3">
         <Button
@@ -483,14 +480,14 @@ function DashboardContent() {
           className="bg-[#FFC107] hover:bg-[#FFB300] text-black font-bold rounded-xl"
         >
           <Crown className="w-4 h-4 mr-2" />
-          View Plans
+          {t.dashboard.viewPlans}
         </Button>
         <Button
           onClick={() => setActiveSection("dashboard")}
           variant="outline"
           className="rounded-xl"
         >
-          Back to Dashboard
+          {t.dashboard.backToDashboard}
         </Button>
       </div>
     </div>
@@ -537,11 +534,12 @@ function DashboardContent() {
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="min-w-0">
               <h1 className="text-base font-bold text-black dark:text-white truncate">
-                Welcome back, <span className="text-[#FFC107]">{userName}</span>
+                {t.dashboard.welcomeBack} <span className="text-[#FFC107]">{userName}</span>
               </h1>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            <LanguageSwitcher />
             <Button
               onClick={() => {
                 setStartFreshWizard(true);
@@ -550,8 +548,8 @@ function DashboardContent() {
               className="h-8 px-3 bg-[#FFC107] hover:bg-[#FFB300] text-black font-semibold text-xs rounded-lg border border-[#FFB300] shadow-sm"
             >
               <Building2 className="h-3.5 w-3.5 mr-1" />
-              <span className="hidden sm:inline">Form a Company</span>
-              <span className="sm:hidden">Form</span>
+              <span className="hidden sm:inline">{t.dashboard.formCompany}</span>
+              <span className="sm:hidden">{t.dashboard.form}</span>
             </Button>
             <Button
               onClick={() => setShowEINModal(true)}
@@ -559,8 +557,8 @@ function DashboardContent() {
               className="h-8 px-3 font-semibold text-xs rounded-lg border border-black/15 dark:border-white/15"
             >
               <FileText className="h-3.5 w-3.5 mr-1" />
-              <span className="hidden sm:inline">Request EIN</span>
-              <span className="sm:hidden">EIN</span>
+              <span className="hidden sm:inline">{t.dashboard.requestEIN}</span>
+              <span className="sm:hidden">{t.dashboard.ein}</span>
             </Button>
           </div>
         </header>
@@ -568,10 +566,10 @@ function DashboardContent() {
         <div className="border-b border-black/8 dark:border-white/8 bg-white dark:bg-black px-4 py-2">
           <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
             {[
-              { action: "add-company", label: "Add Existing Company", icon: Plus },
-              { action: "annual-report", label: "File Annual Report", icon: FileText },
-              { action: "registered-agent", label: "Registered Agent", icon: Shield },
-              { action: "good-standing", label: "Good Standing", icon: Award },
+              { action: "add-company", label: t.dashboard.addExistingCompany, icon: Plus },
+              { action: "annual-report", label: t.dashboard.fileAnnualReport, icon: FileText },
+              { action: "registered-agent", label: t.dashboard.registeredAgent, icon: Shield },
+              { action: "good-standing", label: t.dashboard.goodStanding, icon: Award },
             ].map((item) => {
               const Icon = item.icon;
               return (
@@ -629,10 +627,10 @@ function DashboardContent() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-amber-600" />
-                Complete Your Company Profile
+                {t.dashboard.completeCompanyProfile}
               </DialogTitle>
               <DialogDescription>
-                To get started, please complete your company information first.
+                {t.dashboard.completeProfileDesc}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
@@ -644,7 +642,7 @@ function DashboardContent() {
                 className="w-full bg-[#FFC107] hover:bg-[#FFB300] text-black font-bold"
               >
                 <Building2 className="mr-2 h-4 w-4" />
-                Complete Company Information
+                {t.dashboard.completeCompanyInfo}
               </Button>
               <Button
                 onClick={() => {
@@ -654,7 +652,7 @@ function DashboardContent() {
                 variant="outline"
                 className="w-full"
               >
-                I&apos;ll do this later
+                {t.dashboard.doThisLater}
               </Button>
             </div>
           </DialogContent>
@@ -683,7 +681,7 @@ function DashboardContent() {
                         <div className="h-8 w-8 rounded-lg bg-black/15 flex items-center justify-center">
                           <Crown className="h-4 w-4 text-black" />
                         </div>
-                        <span className="text-xs font-bold bg-black/10 px-2 py-0.5 rounded-full text-black/70">Plan</span>
+                        <span className="text-xs font-bold bg-black/10 px-2 py-0.5 rounded-full text-black/70">{t.dashboard.plan}</span>
                       </div>
                       <div>
                         <p className="text-2xl font-bold text-black capitalize leading-none mb-1">
@@ -693,15 +691,15 @@ function DashboardContent() {
                           onClick={() => setActiveSection("upgrade-plan")}
                           className="text-xs font-semibold text-black/70 hover:text-black flex items-center gap-1 transition-colors"
                         >
-                          Upgrade <ChevronRight className="h-3 w-3" />
+                          {t.dashboard.upgrade} <ChevronRight className="h-3 w-3" />
                         </button>
                       </div>
                     </div>
 
                     {[
-                      { icon: DollarSign, label: "Revenue MTD", value: "$0", sub: "This month" },
-                      { icon: FileText, label: "Documents", value: "0", sub: "Files stored" },
-                      { icon: Activity, label: "Tasks Due", value: "3", sub: "Action needed" },
+                      { icon: DollarSign, label: t.dashboard.revenueMTD, value: "$0", sub: t.dashboard.thisMonth },
+                      { icon: FileText, label: t.dashboard.documents, value: "0", sub: t.dashboard.filesStored },
+                      { icon: Activity, label: t.dashboard.tasksDue, value: "3", sub: t.dashboard.actionNeeded },
                     ].map((card) => (
                       <div
                         key={card.label}
@@ -725,14 +723,14 @@ function DashboardContent() {
                       <div className="px-5 py-3.5 border-b border-black/6 dark:border-white/6 flex items-center justify-between">
                         <h2 className="text-sm font-bold text-black dark:text-white flex items-center gap-2">
                           <div className="h-1.5 w-1.5 rounded-full bg-[#FFC107]" />
-                          Your Companies
+                          {t.dashboard.yourCompanies}
                         </h2>
                         <button
                           onClick={() => setShowAddCompanyModal(true)}
                           className="flex items-center gap-1.5 text-xs font-semibold text-[#FFC107] hover:text-[#FFB300] transition-colors"
                         >
                           <Plus className="h-3.5 w-3.5" />
-                          Add company
+                          {t.dashboard.addCompany}
                         </button>
                       </div>
 
@@ -745,7 +743,7 @@ function DashboardContent() {
                               </div>
                               <div className="min-w-0">
                                 <p className="text-sm font-bold text-black dark:text-white truncate">
-                                  {onboardingData?.company_name || company?.name || "My Company"}
+                                  {onboardingData?.company_name || company?.name || t.dashboard.myCompany}
                                 </p>
                                 <p className="text-xs text-black/40 dark:text-white/40 truncate">
                                   {onboardingData
@@ -758,7 +756,7 @@ function DashboardContent() {
                               onClick={() => setActiveSection("company")}
                               className="text-xs font-semibold text-black/40 dark:text-white/40 hover:text-[#FFC107] transition-colors flex-shrink-0"
                             >
-                              Manage
+                              {t.dashboard.manage}
                             </button>
                           </div>
                         )}
@@ -777,14 +775,14 @@ function DashboardContent() {
                               </div>
                             </div>
                             <span className="text-xs bg-gray-100 dark:bg-white/8 text-gray-500 dark:text-white/40 px-2 py-0.5 rounded-full flex-shrink-0 font-medium">
-                              Added
+                              {t.dashboard.added}
                             </span>
                           </div>
                         ))}
 
                         {!onboardingData && !company && userCompanies.length === 0 && (
                           <div className="px-5 py-6 text-center">
-                            <p className="text-sm text-black/40 dark:text-white/40">No companies yet</p>
+                            <p className="text-sm text-black/40 dark:text-white/40">{t.dashboard.noCompaniesYet}</p>
                           </div>
                         )}
                       </div>
@@ -795,74 +793,74 @@ function DashboardContent() {
                     <div className="px-5 py-3.5 border-b border-black/6 dark:border-white/6 flex items-center justify-between">
                       <h2 className="text-sm font-bold text-black dark:text-white flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-[#FFC107]" />
-                        Services & Tools
+                        {t.dashboard.servicesTools}
                       </h2>
-                      <span className="text-xs text-black/30 dark:text-white/30 font-medium">8 available</span>
+                      <span className="text-xs text-black/30 dark:text-white/30 font-medium">8 {t.dashboard.available}</span>
                     </div>
 
                     <div className="divide-y divide-black/5 dark:divide-white/5">
                       {[
                         {
                           icon: BookOpen,
-                          title: "Bookkeeping",
-                          description: "Track expenses, invoices, and payments in one place.",
+                          title: t.dashboard.bookkeepingService,
+                          description: t.dashboard.bookkeepingDesc,
                           badge: "$30/mo",
                           badgeStyle: "bg-[#FFC107]/15 text-black dark:text-[#FFC107] border border-[#FFC107]/30",
                           action: "transactions" as ActiveSection,
                         },
                         {
                           icon: Percent,
-                          title: "Sales Tax Registration",
-                          description: "Register for sales tax across multiple states automatically.",
-                          badge: "Compliance",
+                          title: t.dashboard.salesTaxService,
+                          description: t.dashboard.salesTaxDesc,
+                          badge: t.dashboard.complianceBadge,
                           badgeStyle: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
                           action: "taxes" as ActiveSection,
                         },
                         {
                           icon: Banknote,
-                          title: "Business Bank Account",
-                          description: "Open a US business bank account with our partner banks.",
-                          badge: "Coming soon",
+                          title: t.dashboard.bankAccountService,
+                          description: t.dashboard.bankAccountDesc,
+                          badge: t.dashboard.comingSoon,
                           badgeStyle: "bg-gray-100 dark:bg-white/8 text-gray-400 dark:text-white/30 border border-black/8 dark:border-white/8",
                           action: null,
                         },
                         {
                           icon: TrendingUp,
-                          title: "TikTok Ads",
-                          description: "Reach millions of customers with targeted ad campaigns.",
-                          badge: "Growth",
+                          title: t.dashboard.tiktokAdsService,
+                          description: t.dashboard.tiktokAdsDesc,
+                          badge: t.dashboard.growthBadge,
                           badgeStyle: "bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 border border-pink-200 dark:border-pink-800",
                           action: "ads" as ActiveSection,
                         },
                         {
                           icon: FileText,
-                          title: "Annual Report Filing",
-                          description: "Automated compliance filings so you never miss a deadline.",
-                          badge: "Compliance",
+                          title: t.dashboard.annualReportService,
+                          description: t.dashboard.annualReportDesc,
+                          badge: t.dashboard.complianceBadge,
                           badgeStyle: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
                           action: "compliance" as ActiveSection,
                         },
                         {
                           icon: DollarSign,
-                          title: "Tax Preparation & Filing",
-                          description: "Professional business tax preparation and filing services.",
-                          badge: "Tax",
+                          title: t.dashboard.taxPrepService,
+                          description: t.dashboard.taxPrepDesc,
+                          badge: t.dashboard.taxBadge,
                           badgeStyle: "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800",
                           action: "taxes" as ActiveSection,
                         },
                         {
                           icon: Mail,
-                          title: "Virtual Mail",
-                          description: "Receive and manage your business mail digitally — scan, forward, and store.",
-                          badge: "Service",
+                          title: t.dashboard.virtualMailService,
+                          description: t.dashboard.virtualMailDesc,
+                          badge: t.dashboard.serviceBadge,
                           badgeStyle: "bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800",
                           action: "mail-phone" as ActiveSection,
                         },
                         {
                           icon: Phone,
-                          title: "Business Phone",
-                          description: "Get a dedicated business phone number with call forwarding and voicemail.",
-                          badge: "Service",
+                          title: t.dashboard.businessPhoneService,
+                          description: t.dashboard.businessPhoneDesc,
+                          badge: t.dashboard.serviceBadge,
                           badgeStyle: "bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800",
                           action: "mail-phone" as ActiveSection,
                         },
@@ -898,13 +896,13 @@ function DashboardContent() {
                       <div className="absolute top-0 right-0 w-24 h-24 bg-black/8 rounded-full -mr-8 -mt-8" />
                       <div className="relative z-10">
                         <Crown className="h-8 w-8 text-black mb-3" />
-                        <h3 className="text-lg font-bold text-black mb-1">Upgrade Your Plan</h3>
-                        <p className="text-black/70 text-sm mb-4">Unlock premium features and scale faster.</p>
+                        <h3 className="text-lg font-bold text-black mb-1">{t.dashboard.upgradeYourPlan}</h3>
+                        <p className="text-black/70 text-sm mb-4">{t.dashboard.unlockPremium}</p>
                         <Button
                           onClick={() => handleSectionChange("upgrade-plan")}
                           className="bg-black text-white hover:bg-black/90 font-bold text-sm h-9 px-5 rounded-lg"
                         >
-                          View Plans <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                          {t.dashboard.viewPlans} <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -913,13 +911,13 @@ function DashboardContent() {
                       <div className="absolute top-0 right-0 w-24 h-24 bg-[#FFC107]/10 rounded-full -mr-8 -mt-8" />
                       <div className="relative z-10">
                         <Rocket className="h-8 w-8 text-[#FFC107] mb-3" />
-                        <h3 className="text-lg font-bold text-white mb-1">Need Help?</h3>
-                        <p className="text-white/60 text-sm mb-4">Our team helps with formation, compliance, and growth.</p>
+                        <h3 className="text-lg font-bold text-white mb-1">{t.dashboard.needHelp}</h3>
+                        <p className="text-white/60 text-sm mb-4">{t.dashboard.teamHelps}</p>
                         <Button
                           onClick={() => handleSectionChange("ai-chief")}
                           className="bg-[#FFC107] hover:bg-[#FFB300] text-black font-bold text-sm h-9 px-5 rounded-lg"
                         >
-                          Contact Support
+                          {t.dashboard.contactSupport}
                         </Button>
                       </div>
                     </div>
