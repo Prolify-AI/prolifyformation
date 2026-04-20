@@ -95,6 +95,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    const waitForSessionHydration = async (timeoutMs = 5000) => {
+      const start = Date.now();
+
+      while (Date.now() - start < timeoutMs) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          return session.user;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+
+      return null;
+    };
+
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -102,6 +116,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           setUser(session.user);
           await loadUserData(session.user);
+        } else if (typeof window !== "undefined") {
+          const isOAuthCallback =
+            window.location.pathname === "/auth/callback" ||
+            window.location.hash.includes("access_token=");
+
+          if (isOAuthCallback) {
+            const hydratedUser = await waitForSessionHydration();
+            if (hydratedUser) {
+              setUser(hydratedUser);
+              await loadUserData(hydratedUser);
+            }
+          }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
