@@ -38,6 +38,41 @@ export default function AuthCallbackPage() {
     };
 
     const handleCallback = async () => {
+      // Explicitly consume OAuth tokens from URL hash when present.
+      // This avoids relying only on implicit auto-detection timing.
+      const hash = window.location.hash.startsWith("#")
+        ? window.location.hash.slice(1)
+        : window.location.hash;
+      const hashParams = new URLSearchParams(hash);
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        const { error: setSessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (!isMounted) return;
+
+        if (!setSessionError) {
+          redirectToDashboard();
+          return;
+        }
+      }
+
+      // Support PKCE callback mode (?code=...) as fallback.
+      const searchParams = new URLSearchParams(window.location.search);
+      const code = searchParams.get("code");
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (!isMounted) return;
+        if (!exchangeError) {
+          redirectToDashboard();
+          return;
+        }
+      }
+
       const {
         data: { session },
         error,
