@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import posthog from 'posthog-js';
@@ -55,6 +55,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
+  const welcomeTriggeredRef = useRef<Set<string>>(new Set());
+
+  const maybeSendGoogleWelcomeEmail = async (currentUser: User) => {
+    if (typeof window === "undefined") return;
+    if (!currentUser.email) return;
+
+    const providers = Array.isArray(currentUser.app_metadata?.providers)
+      ? currentUser.app_metadata.providers
+      : [];
+    const primaryProvider = currentUser.app_metadata?.provider;
+    const isGoogleAccount = primaryProvider === "google" || providers.includes("google");
+    if (!isGoogleAccount) return;
+
+    const createdAt = currentUser.created_at ? Date.parse(currentUser.created_at) : NaN;
+    const lastSignedInAt = currentUser.last_sign_in_at ? Date.parse(currentUser.last_sign_in_at) : NaN;
+    const now = Date.now();
+    const createdRecently = Number.isFinite(createdAt) && now - createdAt <= 15 * 60 * 1000;
+    const firstLoginWindow =
+      Number.isFinite(createdAt) &&
+      Number.isFinite(lastSignedInAt) &&
+      Math.abs(lastSignedInAt - createdAt) <= 15 * 60 * 1000;
+
+    // Only trigger near account creation to avoid sending on normal logins.
+    if (!createdRecently && !firstLoginWindow) return;
+
+    const dedupeKey = `welcome-email-sent:${currentUser.id}`;
+    if (welcomeTriggeredRef.current.has(currentUser.id) || localStorage.getItem(dedupeKey) === "1") {
+      return;
+    }
+
+    welcomeTriggeredRef.current.add(currentUser.id);
+
+    try {
+      const fullName =
+        (currentUser.user_metadata?.full_name as string | undefined) ||
+        (currentUser.user_metadata?.name as string | undefined) ||
+        undefined;
+
+      await fetch("/api/email/post-signup-welcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: currentUser.email.toLowerCase().trim(),
+          fullName,
+        }),
+      });
+      localStorage.setItem(dedupeKey, "1");
+    } catch (error) {
+      console.warn("[auth] welcome email trigger failed", error);
+      welcomeTriggeredRef.current.delete(currentUser.id);
+    }
+  };
 
   const loadUserData = async (currentUser: User) => {
     try {
@@ -115,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (session?.user) {
           setUser(session.user);
+          void maybeSendGoogleWelcomeEmail(session.user);
           await loadUserData(session.user);
         } else if (typeof window !== "undefined") {
           const isOAuthCallback =
@@ -125,6 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const hydratedUser = await waitForSessionHydration();
             if (hydratedUser) {
               setUser(hydratedUser);
+              void maybeSendGoogleWelcomeEmail(hydratedUser);
               await loadUserData(hydratedUser);
             }
           }
@@ -144,6 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (session?.user) {
           (async () => {
+            void maybeSendGoogleWelcomeEmail(session.user);
             await loadUserData(session.user);
           })();
         } else {
