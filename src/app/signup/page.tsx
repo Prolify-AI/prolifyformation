@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import GetStartedModal from "@/components/dashboard/GetStartedModal";
 import { formationPlans } from "@/lib/plans";
+import { buildSiteUrl } from "@/lib/site-url";
 
 const ACTION_SECTION_MAP: Record<string, string> = {
   "add-company": "company",
@@ -135,7 +136,7 @@ function SignupContent() {
   };
 
   const handleFreeSubmit = async () => {
-    const redirectTo = `${window.location.origin}/auth/callback`;
+    const redirectTo = buildSiteUrl("/auth/callback");
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,

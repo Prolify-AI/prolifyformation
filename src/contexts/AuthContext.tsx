@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import posthog from 'posthog-js';
+import { buildSiteUrl } from "@/lib/site-url";
 
 type Profile = {
   id: string;
@@ -152,10 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     try {
-      const redirectTo =
-        typeof window !== "undefined"
-          ? `${window.location.origin}/auth/callback`
-          : undefined;
+      const redirectTo = buildSiteUrl("/auth/callback");
 
       const { error } = await supabase.auth.signUp({
         email,
@@ -178,7 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: buildSiteUrl("/auth/callback"),
         },
       });
 
