@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Mail, Lock, CircleAlert as AlertCircle } from "lucide-react";
@@ -15,7 +15,7 @@ import { TermsModal } from "@/components/TermsModal";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
@@ -70,6 +70,12 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [authLoading, user, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center py-24 px-4 bg-gradient-to-br from-[#FFC107]/10 via-white to-white dark:from-[#FFD54F]/5 dark:via-[#0a0a0a] dark:to-[#0a0a0a]">

@@ -1,20 +1,51 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase/client';
 
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [checkingSession, setCheckingSession] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
+    if (loading || user) return;
+
+    let cancelled = false;
+
+    const verifySessionBeforeRedirect = async () => {
+      setCheckingSession(true);
+      const startedAt = Date.now();
+
+      while (!cancelled && Date.now() - startedAt < 2500) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user) {
+          setCheckingSession(false);
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+
+      if (!cancelled) {
+        setCheckingSession(false);
+        router.replace('/login');
+      }
+    };
+
+    verifySessionBeforeRedirect();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user, loading, router]);
 
-  if (loading) {
+  if (loading || checkingSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0a0a0a]">
         <div className="text-center">
