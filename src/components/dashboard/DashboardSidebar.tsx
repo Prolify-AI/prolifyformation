@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Building2, User, FileText, Calendar, Percent, BookOpen, ChartBar as BarChart3, Rocket, Gift, Settings, Hop as Home, Bot, Store, GraduationCap, Crown, List, ChartPie as PieChart, Layers, ShoppingBag, Package, Sparkles, Megaphone, ChevronRight, LogOut, Mail, Phone, LayoutGrid, Lock, ShieldCheck } from "lucide-react";
+import { Building2, User, FileText, Calendar, Percent, BookOpen, ChartBar as BarChart3, Rocket, Gift, Settings, Hop as Home, Bot, Store, GraduationCap, Crown, List, ChartPie as PieChart, Layers, ShoppingBag, Package, Sparkles, Megaphone, ChevronRight, LogOut, Mail, Phone, LayoutGrid, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useI18n } from "@/contexts/I18nContext";
@@ -133,7 +133,6 @@ export function DashboardSidebar({
   ];
 
   const bottomNavItems: NavItem[] = [
-    { id: "kyc", label: t.dashboard.identityVerification, icon: ShieldCheck },
     { id: "upgrade-plan", label: t.dashboard.upgradePlan, icon: Rocket, highlight: true },
     { id: "settings", label: t.dashboard.settings, icon: Settings },
   ];
