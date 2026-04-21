@@ -6,6 +6,7 @@ import { useI18n } from "@/contexts/I18nContext";
 
 export function LanguageSwitcher() {
   const { locale, setLocale, locales } = useI18n();
+  if (locales.length <= 1) return null;
 
   const current = locales.find((l) => l.code === locale);
 
