@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import {
   type Locale,
   type Translations,
@@ -22,6 +23,8 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+  const pathname = usePathname();
+  const effectiveLocale: Locale = pathname === "/" ? "en" : locale;
 
   useEffect(() => {
     const stored = localStorage.getItem(LOCALE_STORAGE_KEY) as Locale | null;
@@ -36,23 +39,23 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const currentLocale = locales.find((l) => l.code === locale);
+    const currentLocale = locales.find((l) => l.code === effectiveLocale);
     const dir = currentLocale?.dir ?? "ltr";
-    document.documentElement.lang = locale;
+    document.documentElement.lang = effectiveLocale;
     document.documentElement.dir = dir;
-  }, [locale]);
+  }, [effectiveLocale]);
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem(LOCALE_STORAGE_KEY, newLocale);
   }, []);
 
-  const currentLocale = locales.find((l) => l.code === locale);
+  const currentLocale = locales.find((l) => l.code === effectiveLocale);
   const dir = (currentLocale?.dir ?? "ltr") as "ltr" | "rtl";
 
   const value: I18nContextValue = {
-    locale,
-    t: getTranslations(locale),
+    locale: effectiveLocale,
+    t: getTranslations(effectiveLocale),
     setLocale,
     locales,
     dir,
