@@ -10,7 +10,6 @@ import ar from "./translations/ar";
 export type Locale = "en" | "fr" | "es" | "pt" | "de" | "it" | "zh" | "ar";
 
 export const locales: { code: Locale; label: string; flag: string; dir?: "rtl" }[] = [
-  { code: "en", label: "English", flag: "🇺🇸" },
   { code: "fr", label: "Français", flag: "🇫🇷" },
   { code: "es", label: "Español", flag: "🇪🇸" },
   { code: "pt", label: "Português", flag: "🇧🇷" },
